@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  chatbot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./helpdesk_bot_model:/app/helpdesk_bot_model
+      - ./logs:/app/logs
+    env_file:
+      - .env
+    restart: unless-stopped

@@ -1,0 +1,286 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank of Mauritius IT Helpdesk</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #004a80;
+            text-align: center;
+        }
+
+        /* Chatbot Widget Styles */
+        .chatbot-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 350px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            overflow: hidden;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            max-height: 500px;
+        }
+
+        .chatbot-header {
+            background-color: #004a80;
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chatbot-title {
+            margin: 0;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .chatbot-toggle {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .chatbot-messages {
+            padding: 15px;
+            overflow-y: auto;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 350px;
+        }
+
+        .message {
+            padding: 10px;
+            border-radius: 15px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+
+        .user-message {
+            background-color: #e6f2ff;
+            align-self: flex-end;
+            border-bottom-right-radius: 5px;
+        }
+
+        .bot-message {
+            background-color: #f0f0f0;
+            align-self: flex-start;
+            border-bottom-left-radius: 5px;
+        }
+
+        .chatbot-input {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #ddd;
+        }
+
+        .chatbot-input input {
+            flex-grow: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            margin-right: 10px;
+        }
+
+        .chatbot-input button {
+            background-color: #004a80;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 15px;
+            cursor: pointer;
+        }
+
+        .chatbot-trigger {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #004a80;
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 999;
+        }
+
+        .chatbot-container.hidden {
+            display: none;
+        }
+
+        .typing-indicator {
+            display: flex;
+            padding: 10px;
+            align-self: flex-start;
+        }
+
+        .typing-indicator span {
+            height: 8px;
+            width: 8px;
+            background-color: #aaa;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 0 2px;
+            animation: bounce 1.5s infinite ease-in-out;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes bounce {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-5px);
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Bank of Mauritius Intranet</h1>
+    <!-- Your intranet content here -->
+</div>
+
+<!-- Chatbot Trigger Button -->
+<div class="chatbot-trigger" id="chatbotTrigger">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+    </svg>
+</div>
+
+<!-- Chatbot Widget -->
+<div class="chatbot-container hidden" id="chatbotContainer">
+    <div class="chatbot-header">
+        <h3 class="chatbot-title">IT Helpdesk Assistant</h3>
+        <button class="chatbot-toggle" id="chatbotToggle">×</button>
+    </div>
+    <div class="chatbot-messages" id="chatbotMessages">
+        <div class="message bot-message">
+            Hello! I'm your IT helpdesk assistant. How can I help you today?
+        </div>
+    </div>
+    <div class="chatbot-input">
+        <label for="userInput"></label><input type="text" id="userInput" placeholder="Type your message here..." autocomplete="off">
+        <button id="sendButton">Send</button>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatbotTrigger = document.getElementById('chatbotTrigger');
+        const chatbotContainer = document.getElementById('chatbotContainer');
+        const chatbotToggle = document.getElementById('chatbotToggle');
+        const chatbotMessages = document.getElementById('chatbotMessages');
+        const userInput = document.getElementById('userInput');
+        const sendButton = document.getElementById('sendButton');
+
+        // Toggle chatbot visibility
+        chatbotTrigger.addEventListener('click', () => {
+            chatbotContainer.classList.remove('hidden');
+            chatbotTrigger.classList.add('hidden');
+            userInput.focus();
+        });
+
+        chatbotToggle.addEventListener('click', () => {
+            chatbotContainer.classList.add('hidden');
+            chatbotTrigger.classList.remove('hidden');
+        });
+
+        // Send message function
+        function sendMessage() {
+            const message = userInput.value.trim();
+            if (message === '') return;
+
+            // Add user message to chat
+            addMessage(message, 'user');
+            userInput.value = '';
+
+            // Show typing indicator
+            const typingIndicator = document.createElement('div');
+            typingIndicator.className = 'typing-indicator';
+            typingIndicator.innerHTML = '<span></span><span></span><span></span>';
+            chatbotMessages.appendChild(typingIndicator);
+            chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+
+            // Send message to server
+            fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: message }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    // Remove typing indicator
+                    chatbotMessages.removeChild(typingIndicator);
+
+                    // Add bot response
+                    addMessage(data.response, 'bot');
+                })
+                .catch(error => {
+                    // Remove typing indicator
+                    chatbotMessages.removeChild(typingIndicator);
+
+                    // Add error message
+                    addMessage('Sorry, I encountered an error. Please try again later.', 'bot');
+                    console.error('Error:', error);
+                });
+        }
+
+        // Add message to chat
+        function addMessage(text, sender) {
+            const messageElement = document.createElement('div');
+            messageElement.className = `message ${sender}-message`;
+            messageElement.textContent = text;
+            chatbotMessages.appendChild(messageElement);
+            chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+        }
+
+        // Event listeners
+        sendButton.addEventListener('click', sendMessage);
+
+        userInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    });
+</script>
+</body>
+</html>
